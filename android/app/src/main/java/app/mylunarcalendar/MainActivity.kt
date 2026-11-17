@@ -55,7 +55,9 @@ class MainActivity : Activity() {
                 if (AppTheme.save(app, mode)) MonthWidgetProvider.renderAll(app)
             }
         }, "AndroidApp")
-        if (savedInstanceState != null) web.restoreState(savedInstanceState) else web.loadUrl(urlFor(base, intent))
+        // Mở app luôn vào tab Lịch (user chốt 2026-11-18), không khôi phục trang đang xem dở lần trước
+        // (vd tab Cài đặt) khi Android đã tắt app chạy nền
+        web.loadUrl(urlFor(base, intent))
         Updater.checkDaily(this)
     }
 
@@ -74,11 +76,6 @@ class MainActivity : Activity() {
     override fun onPause() {
         super.onPause()
         CookieManager.getInstance().flush()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        if (::web.isInitialized) web.saveState(outState)
     }
 
     /** Nút back của điện thoại lùi trang trong web trước, hết trang mới thoát app */

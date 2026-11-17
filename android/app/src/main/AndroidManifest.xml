@@ -15,10 +15,10 @@
         android:theme="@style/AppTheme">
 
         <!-- Web trong app. singleTop: bấm ngày trên widget khi app đang mở thì chỉ chuyển sang ngày đó;
-             configChanges: xoay màn hình không tải lại web -->
+             configChanges: xoay màn hình, đổi sáng/tối của máy không tải lại web -->
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:exported="true"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize" />
