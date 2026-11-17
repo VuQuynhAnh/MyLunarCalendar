@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.ProgressBar
@@ -25,6 +26,11 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Icon app hiện ngày hôm nay; hẹn 0 giờ đổi icon dù chưa đặt widget nào. Vẽ lại widget để ăn
+        // theo chế độ sáng/tối hiện tại của máy (khi chọn "Theo hệ thống")
+        DayIcon.update(this)
+        MonthWidgetProvider.scheduleMidnight(this)
+        MonthWidgetProvider.renderAll(this)
         val base = SetupActivity.webUrl(this)
         if (base == null) {
             startActivity(Intent(this, SetupActivity::class.java))
@@ -35,12 +41,20 @@ class MainActivity : Activity() {
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { isIndeterminate = true }
         val root = FrameLayout(this).apply {
             fitsSystemWindows = true
-            setBackgroundColor(0xFF0F0F10.toInt())
+            setBackgroundColor(if (AppTheme.isDark(this@MainActivity)) 0xFF0F0F10.toInt() else 0xFFFAF8F3.toInt())
             addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             addView(progress, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
         }
         setContentView(root)
         WebScreen.setup(this, web, base) { loading -> progress.visibility = if (loading) View.VISIBLE else View.GONE }
+        // Web báo giao diện sáng/tối đã chọn ở tab Cài đặt: lưu lại để widget màn hình chính đổi theo
+        val app = applicationContext
+        web.addJavascriptInterface(object {
+            @JavascriptInterface
+            fun setTheme(mode: String) {
+                if (AppTheme.save(app, mode)) MonthWidgetProvider.renderAll(app)
+            }
+        }, "AndroidApp")
         if (savedInstanceState != null) web.restoreState(savedInstanceState) else web.loadUrl(urlFor(base, intent))
         Updater.checkDaily(this)
     }

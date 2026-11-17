@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Giao diện sáng; máy bật chế độ tối thì dùng values-night. Web trong app đọc theo đây khi chọn "Theo hệ thống" -->
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.DarkActionBar" />
+</resources>

@@ -5,7 +5,7 @@ Lịch âm Việt Nam và tử vi hằng ngày bằng AI, dùng tốt trên đi�
 - **Lịch:** lịch tháng có ngày âm, ngày lễ/Tết, can chi, ngày hoàng đạo/hắc đạo, tiết khí, giờ hoàng đạo; đổi ngày âm → dương.
 - **Tử vi:** nhiều hồ sơ (bản thân, người nhà). Code tính tuổi, mệnh, can chi ngày và hợp xung; AI (Gemini miễn phí) viết lời tử vi dựa trên số liệu đó. Có chat hỏi thêm.
 - **Không tài khoản, không database:** hồ sơ và tử vi đã xem lưu trên máy (trình duyệt), xoá dữ liệu trình duyệt là mất. Server chỉ chuyển số liệu tới AI, không lưu gì.
-- **App Android:** mở app là web trong app (webview); widget lịch tháng 4x4 tính ngay trên máy, không cần mạng.
+- **App Android:** mở app là web trong app (webview); icon app hiện ngày dương hôm nay; widget lịch tháng 4x4 tính ngay trên máy, không cần mạng, đổi sáng/tối theo lựa chọn trong tab Cài đặt.
 - **Chưa có key Gemini** thì web chỉ còn tab Lịch (ẩn tử vi, hồ sơ, chat), không báo lỗi.
 
 ## Cấu trúc
@@ -14,7 +14,7 @@ Lịch âm Việt Nam và tử vi hằng ngày bằng AI, dùng tốt trên đi�
 |---|---|
 | `shared/` | Lịch âm (thuật toán Hồ Ngọc Đức, múi giờ +7), can chi, tiết khí, giờ hoàng đạo, ngày lễ, số liệu tử vi. Dùng chung server + web. Bộ số liệu kiểm tra `shared/test/lunar-cases.json` dùng chung với bản Kotlin |
 | `server/` | Express, không database: tính số liệu tử vi rồi gọi AI, chat, mật khẩu chung |
-| `web/` | Vite + React + Tailwind 4, giao diện tối mobile-first: 3 tab Lịch / Tử vi / Hồ sơ, nút Hỏi AI |
+| `web/` | Vite + React + Tailwind 4, mobile-first, giao diện sáng/tối: 3 tab Lịch (vuốt ngang chuyển tháng) / Tiện ích (Tử vi, Hồ sơ, đổi ngày âm ↔ dương) / Cài đặt (sáng, tối, theo hệ thống), nút Hỏi AI |
 | `android/` | App Android: web trong app (webview) + widget lịch tháng offline (Kotlin, SDK chuẩn) |
 
 ## Chạy

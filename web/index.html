@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f0f10" />
     <title>MyLunarCalendar</title>
+    <script>
+      // Áp sáng/tối đã chọn ngay khi tải trang, trước khi JavaScript chính chạy, để không nháy màu
+      try {
+        var m = JSON.parse(localStorage.getItem("mlc.theme") || '"system"');
+        var dark = m === "dark" || (m === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

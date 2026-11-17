@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { dayInfo } from "@mylunar/shared";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,23 @@ export function CalendarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
 
+  // Vuốt ngang trên lưới lịch để chuyển tháng: vuốt sang trái là tháng sau. Chỉ tính khi vuốt ngang
+  // rõ ràng (≥ 50px, ngang nhiều hơn dọc) để không lẫn với cuộn trang
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = t ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start0 = touch.current;
+    const t = e.changedTouches[0];
+    touch.current = null;
+    if (!start0 || !t) return;
+    const dx = t.clientX - start0.x;
+    const dy = t.clientY - start0.y;
+    if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.5) shift(dx < 0 ? 1 : -1);
+  };
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
@@ -48,7 +65,13 @@ export function CalendarPage() {
         </button>
       </div>
 
-      <div role="grid" aria-label={`Lịch tháng ${month} năm ${year}`} className="grid grid-cols-7 gap-1 text-center">
+      <div
+        role="grid"
+        aria-label={`Lịch tháng ${month} năm ${year}`}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="grid touch-pan-y grid-cols-7 gap-1 text-center"
+      >
         {WEEKDAYS.map((w) => (
           <div key={w} className={cn("py-1 text-xs text-muted", w === "CN" && "text-bad")}>
             {w}

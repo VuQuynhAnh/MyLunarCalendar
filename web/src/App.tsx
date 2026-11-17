@@ -11,6 +11,8 @@ import { CalendarPage } from "./pages/CalendarPage";
 import { HoroscopePage } from "./pages/HoroscopePage";
 import { ProfilesPage } from "./pages/ProfilesPage";
 import { ProfileFormPage } from "./pages/ProfileFormPage";
+import { UtilitiesPage } from "./pages/UtilitiesPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 /**
  * Không có tài khoản (user chốt 2026-11-17). Lịch mở ngay, không chờ server (server miễn phí có thể
@@ -70,8 +72,9 @@ function AiOnly() {
 }
 
 /**
- * 3 tab (Lịch / Tử vi / Hồ sơ) nằm trong AppShell có thanh tab dưới; form hồ sơ là trang riêng
- * toàn màn hình, nên nút back của điện thoại quay về tab trước.
+ * 3 tab (Lịch / Tiện ích / Cài đặt) nằm trong AppShell có thanh tab dưới; Tử vi, Hồ sơ là trang con
+ * của Tiện ích (chỉ khi AI bật). Form hồ sơ là trang riêng toàn màn hình, nên nút back của điện thoại
+ * quay về trang trước.
  */
 export function AppRoutes() {
   return (
@@ -79,6 +82,8 @@ export function AppRoutes() {
       <Route element={<Gate />}>
         <Route element={<AppShell />}>
           <Route index element={<CalendarPage />} />
+          <Route path="tien-ich" element={<UtilitiesPage />} />
+          <Route path="cai-dat" element={<SettingsPage />} />
           <Route element={<AiOnly />}>
             <Route path="tu-vi" element={<HoroscopePage />} />
             <Route path="ho-so" element={<ProfilesPage />} />

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sinh tự động: tờ lịch, gáy đỏ, số ngày dương ở giữa (icon đổi theo ngày) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#D83A34" android:pathData="M24,26h60v16h-60z" />
+    <path android:fillColor="#FFFDF7" android:pathData="M38,22h4v10h-4zM66,22h4v10h-4z" />
+    <path android:fillColor="#1F1F23" android:pathData="M45.13 82H38.53V57.12Q34.91 60.5 30 62.12V56.13Q32.58 55.28 35.62 52.92Q38.65 50.56 39.77 47.41H45.13ZM77.37 55.99 70.98 56.69Q70.74 54.72 69.75 53.78Q68.77 52.84 67.19 52.84Q65.1 52.84 63.66 54.72Q62.21 56.6 61.84 62.54Q64.3 59.63 67.97 59.63Q72.1 59.63 75.05 62.78Q78 65.93 78 70.91Q78 76.2 74.9 79.39Q71.8 82.59 66.93 82.59Q61.72 82.59 58.36 78.53Q55 74.48 55 65.25Q55 55.78 58.5 51.6Q62 47.41 67.59 47.41Q71.52 47.41 74.09 49.61Q76.66 51.81 77.37 55.99ZM62.4 70.39Q62.4 73.61 63.88 75.36Q65.36 77.11 67.26 77.11Q69.1 77.11 70.32 75.68Q71.54 74.25 71.54 70.98Q71.54 67.62 70.22 66.06Q68.91 64.49 66.93 64.49Q65.03 64.49 63.72 65.99Q62.4 67.48 62.4 70.39Z" />
+</vector>

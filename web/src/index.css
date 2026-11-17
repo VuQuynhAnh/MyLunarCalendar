@@ -27,6 +27,25 @@
   color-scheme: dark;
 }
 
+/*
+ * Giao diện sáng (CAL-UC02): cùng tên token, đổi giá trị. data-theme do web/src/lib/theme.ts gắn vào
+ * <html>; component không cần biết đang sáng hay tối. Cặp chữ/nền vẫn ≥ 4.5:1.
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #faf8f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1ede4;
+  --color-line: #e2ddd1;
+  --color-ink: #1f1f23;
+  --color-muted: #66615a;
+  --color-gold: #8a6700;
+  --color-gold-deep: #6f5300;
+  --color-gold-soft: #6f5300;
+  --color-good: #047857;
+  --color-bad: #c62828;
+}
+
 html,
 body,
 #root {

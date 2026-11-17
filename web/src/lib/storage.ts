@@ -34,4 +34,5 @@ export const KEYS = {
   readings: "mlc.readings",
   password: "mlc.password",
   config: "mlc.config",
+  theme: "mlc.theme",
 } as const;

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiError } from "../src/api";
 import { baseHandlers, deferred, horoscope, mockApi, renderAt, seedProfiles } from "./helpers";
@@ -43,15 +43,30 @@ describe("tab Lịch (CAL-UC01)", () => {
     expect(within(detail).getByText("Thứ Sáu, 20/11/2026")).toBeTruthy();
   });
 
-  it("chuyển tháng; nút Thêm: đổi âm → dương, dương → âm, Xem trên lịch", async () => {
+  it("chuyển tháng bằng nút và vuốt ngang", async () => {
     mockApi(baseHandlers());
     const user = userEvent.setup();
     renderAt("/");
     await user.click(await screen.findByRole("button", { name: "Tháng sau" }));
+    const grid = screen.getByRole("grid", { name: "Lịch tháng 12 năm 2026" });
+    // Vuốt sang trái: tháng sau; vuốt sang phải: tháng trước; vuốt dọc: không đổi
+    fireEvent.touchStart(grid, { touches: [{ clientX: 300, clientY: 100 }] });
+    fireEvent.touchEnd(grid, { changedTouches: [{ clientX: 120, clientY: 110 }] });
+    expect(screen.getByRole("grid", { name: "Lịch tháng 1 năm 2027" })).toBeTruthy();
+    fireEvent.touchStart(screen.getByRole("grid"), { touches: [{ clientX: 100, clientY: 100 }] });
+    fireEvent.touchEnd(screen.getByRole("grid"), { changedTouches: [{ clientX: 300, clientY: 100 }] });
     expect(screen.getByRole("grid", { name: "Lịch tháng 12 năm 2026" })).toBeTruthy();
+    fireEvent.touchStart(screen.getByRole("grid"), { touches: [{ clientX: 100, clientY: 100 }] });
+    fireEvent.touchEnd(screen.getByRole("grid"), { changedTouches: [{ clientX: 160, clientY: 300 }] });
+    expect(screen.getByRole("grid", { name: "Lịch tháng 12 năm 2026" })).toBeTruthy();
+  });
 
-    await user.click(screen.getByRole("button", { name: "Thêm" }));
-    const sheet = screen.getByRole("dialog", { name: "Thêm" });
+  it("tab Tiện ích: đổi âm → dương, dương → âm, Xem trên lịch", async () => {
+    mockApi(baseHandlers());
+    const user = userEvent.setup();
+    renderAt("/");
+    await user.click(await screen.findByRole("link", { name: "Tiện ích" }));
+    const sheet = await screen.findByRole("main");
     const conv = within(sheet).getByRole("region", { name: "Đổi ngày âm sang dương" });
     await user.type(within(conv).getByLabelText("Ngày"), "1");
     await user.type(within(conv).getByLabelText("Tháng"), "1");
@@ -69,11 +84,7 @@ describe("tab Lịch (CAL-UC01)", () => {
     await user.type(input, "2025-10-06");
     await user.click(within(back).getByRole("button", { name: "Đổi sang âm" }));
     expect(within(back).getByText("Thứ Hai, 06/10/2025 là ngày 15 tháng 8 năm Ất Tỵ (âm lịch)")).toBeTruthy();
-    // Ngoài app Android thì mời tải app
-    expect(within(sheet).getByRole("link", { name: "Tải mylunarcalendar.apk" })).toBeTruthy();
-
     await user.click(within(back).getByRole("button", { name: "Xem trên lịch" }));
-    expect(screen.queryByRole("dialog", { name: "Thêm" })).toBeNull();
     expect(await screen.findByRole("grid", { name: "Lịch tháng 10 năm 2025" })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: "Chi tiết ngày" })).getByText("Tết Trung thu")).toBeTruthy();
   });
@@ -204,15 +215,16 @@ describe("mật khẩu chung (HORO-UC01/BR-6)", () => {
 
 describe("chưa bật AI (HORO-UC01/BR-8)", () => {
   // SC: HORO-UC01-SC10
-  it("server chưa có key Gemini: chỉ còn lịch, không có tab Tử vi/Hồ sơ, nút Hỏi AI; link cũ về Lịch", async () => {
+  it("server chưa có key Gemini: không có Tử vi/Hồ sơ, nút Hỏi AI; link cũ về Lịch; Tiện ích vẫn đổi ngày", async () => {
     mockApi({ "GET /config": () => ({ passwordRequired: false, aiEnabled: false }) });
+    const user = userEvent.setup();
     renderAt("/tu-vi");
     expect(await screen.findByRole("grid", { name: "Lịch tháng 11 năm 2026" })).toBeTruthy();
-    expect(screen.queryByRole("navigation", { name: "Điều hướng chính" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Hỏi AI" })).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
-    // Nút Thêm (đổi ngày) vẫn có, đứng chỗ nút Hỏi AI
-    expect(screen.getByRole("button", { name: "Thêm" })).toBeTruthy();
+    await user.click(screen.getByRole("link", { name: "Tiện ích" }));
+    expect(await screen.findByRole("region", { name: "Đổi ngày âm sang dương" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /Tử vi/ })).toBeNull();
   });
 
   it("không gọi được server: lịch vẫn chạy, ẩn phần AI, không báo lỗi", async () => {
@@ -223,7 +235,7 @@ describe("chưa bật AI (HORO-UC01/BR-8)", () => {
     });
     renderAt("/");
     expect(await screen.findByRole("grid", { name: "Lịch tháng 11 năm 2026" })).toBeTruthy();
-    await waitFor(() => expect(screen.queryByRole("navigation", { name: "Điều hướng chính" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Hỏi AI" })).toBeNull());
     expect(screen.queryByText("Không kết nối được máy chủ")).toBeNull();
   });
 });
@@ -235,5 +247,33 @@ describe("mở thẳng một ngày (CAL-UC01/BR-6)", () => {
     expect(await screen.findByRole("grid", { name: "Lịch tháng 2 năm 2027" })).toBeTruthy();
     const detail = screen.getByRole("region", { name: "Chi tiết ngày" });
     expect(within(detail).getByText("Tết Nguyên Đán")).toBeTruthy();
+  });
+});
+
+describe("tab Cài đặt: sáng tối (CAL-UC02)", () => {
+  // SC: CAL-UC02-SC1
+  it("chọn Sáng/Tối thì áp ngay, nhớ trên máy, báo xuống app Android để widget đổi theo", async () => {
+    const setTheme = vi.fn();
+    window.AndroidApp = { setTheme };
+    mockApi(baseHandlers());
+    const user = userEvent.setup();
+    renderAt("/cai-dat");
+    expect((await screen.findByRole("radio", { name: /Theo hệ thống/ })).getAttribute("aria-checked")).toBe("true");
+    await user.click(screen.getByRole("radio", { name: "Sáng" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(JSON.parse(localStorage.getItem("mlc.theme")!)).toBe("light");
+    expect(setTheme).toHaveBeenLastCalledWith("light");
+    await user.click(screen.getByRole("radio", { name: "Tối" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(setTheme).toHaveBeenLastCalledWith("dark");
+    // Trong app thì không mời tải app nữa
+    expect(screen.queryByRole("region", { name: "Tải app Android" })).toBeNull();
+    delete window.AndroidApp;
+  });
+
+  it("mở bằng trình duyệt thì có hướng dẫn tải app", async () => {
+    mockApi(baseHandlers());
+    renderAt("/cai-dat");
+    expect(await screen.findByRole("link", { name: "Tải mylunarcalendar.apk" })).toBeTruthy();
   });
 });

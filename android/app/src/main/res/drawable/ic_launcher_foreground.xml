@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tờ lịch có trăng lưỡi liềm: khung lịch sáng, đầu lịch vàng, trăng vàng (vùng an toàn 66dp giữa khung 108dp) -->
+<!-- Sinh tự động: tờ lịch, gáy đỏ, số ngày dương ở giữa (icon đổi theo ngày) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#F4F1EA"
-        android:pathData="M36,34h36a4,4 0,0 1,4 4v32a4,4 0,0 1,-4 4h-36a4,4 0,0 1,-4 -4v-32a4,4 0,0 1,4 -4z" />
-    <path
-        android:fillColor="#D4AF37"
-        android:pathData="M36,34h36a4,4 0,0 1,4 4v6h-44v-6a4,4 0,0 1,4 -4z" />
-    <!-- Trăng lưỡi liềm: hình tròn vàng bị hình tròn màu nền tờ lịch che một phần -->
-    <path
-        android:fillColor="#D4AF37"
-        android:pathData="M54,49a10,10 0,1 1,0 20a10,10 0,1 1,0 -20z" />
-    <path
-        android:fillColor="#F4F1EA"
-        android:pathData="M59,47a9,9 0,1 1,0 18a9,9 0,1 1,0 -18z" />
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#D83A34" android:pathData="M24,26h60v16h-60z" />
+    <path android:fillColor="#FFFDF7" android:pathData="M38,22h4v10h-4zM66,22h4v10h-4z" />
+    <path android:fillColor="#D4AF37" android:pathData="M38,65a16,16 0,1 0,32 0a16,16 0,1 0,-32 0z" />
+    <path android:fillColor="#FFFDF7" android:pathData="M47,59a14,14 0,1 0,28 0a14,14 0,1 0,-28 0z" />
 </vector>

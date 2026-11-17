@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sinh tự động: tờ lịch, gáy đỏ, số ngày dương ở giữa (icon đổi theo ngày) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#D83A34" android:pathData="M24,26h60v16h-60z" />
+    <path android:fillColor="#FFFDF7" android:pathData="M38,22h4v10h-4zM66,22h4v10h-4z" />
+    <path android:fillColor="#1F1F23" android:pathData="M66.04 76.62V83H41.96Q42.35 79.38 44.3 76.14Q46.26 72.9 52.03 67.54Q56.68 63.21 57.73 61.67Q59.15 59.55 59.15 57.47Q59.15 55.17 57.91 53.93Q56.68 52.7 54.5 52.7Q52.35 52.7 51.08 53.99Q49.81 55.29 49.61 58.3L42.76 57.61Q43.37 51.94 46.6 49.47Q49.83 47 54.67 47Q59.98 47 63.01 49.86Q66.04 52.72 66.04 56.98Q66.04 59.4 65.18 61.59Q64.31 63.78 62.43 66.17Q61.18 67.76 57.93 70.75Q54.67 73.73 53.8 74.71Q52.94 75.69 52.4 76.62Z" />
+</vector>
