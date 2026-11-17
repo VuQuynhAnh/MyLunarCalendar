@@ -75,12 +75,20 @@ object WebScreen {
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    /** "mylunar.onrender.com" → "https://mylunar.onrender.com"; sai dạng thì null */
+    /**
+     * Chỉ giữ gốc địa chỉ: "mylunar.onrender.com/cai-dat?x=1" → "https://mylunar.onrender.com".
+     * Người dùng hay chép địa chỉ từ thanh trình duyệt khi đang ở tab Cài đặt (nơi có hướng dẫn cài
+     * app); giữ cả đường dẫn thì mỗi lần mở app lại vào thẳng tab đó thay vì tab Lịch.
+     * Sai dạng thì null.
+     */
     fun normalizeUrl(raw: String): String? {
-        var url = raw.trim().trimEnd('/')
+        var url = raw.trim()
         if (url.isEmpty()) return null
         if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://$url"
         val uri = Uri.parse(url)
-        return if (uri.host.isNullOrBlank()) null else url
+        val host = uri.host
+        if (host.isNullOrBlank()) return null
+        val port = if (uri.port != -1) ":${uri.port}" else ""
+        return "${uri.scheme}://$host$port"
     }
 }

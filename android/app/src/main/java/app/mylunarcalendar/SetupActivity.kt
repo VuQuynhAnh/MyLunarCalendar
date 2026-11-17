@@ -76,7 +76,9 @@ class SetupActivity : Activity() {
         private const val PREFS = "app"
         private const val KEY_URL = "webUrl"
 
-        fun webUrl(ctx: Context): String? = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_URL, null)
+        /** Địa chỉ đã lưu, chỉ lấy gốc (địa chỉ lưu từ bản cũ có thể kèm đường dẫn như /cai-dat) */
+        fun webUrl(ctx: Context): String? =
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_URL, null)?.let { WebScreen.normalizeUrl(it) }
 
         fun saveWebUrl(ctx: Context, url: String) {
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_URL, url).apply()
