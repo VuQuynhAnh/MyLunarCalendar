@@ -1,13 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { dayInfo, lunarToSolar } from "@mylunar/shared";
+import { dayInfo } from "@mylunar/shared";
 import { cn } from "@/lib/utils";
-import { WEEKDAYS, longDate, monthGrid, pad, parseYmd, today, ymd } from "../lib/calendar";
-import { Field, inputClass } from "../components/ui";
+import { WEEKDAYS, longDate, monthGrid, parseYmd, today } from "../lib/calendar";
 
 /**
  * Tab Lịch (CAL-UC01): lịch tháng dương có ngày âm trong từng ô, ngày lễ tô màu; chạm một ngày để
- * xem chi tiết (can chi, hoàng đạo, tiết khí, giờ hoàng đạo). Tính hoàn toàn trên trình duyệt.
+ * xem chi tiết (can chi, hoàng đạo, tiết khí, giờ hoàng đạo). Tính hoàn toàn trên trình duyệt. Đổi ngày
+ * âm ↔ dương nằm ở bảng "Thêm" (nút nổi).
  */
 export function CalendarPage() {
   const now = today();
@@ -28,6 +28,11 @@ export function CalendarPage() {
     const [y, m] = parseYmd(date);
     setView([y, m]);
   };
+  // Đổi ngày ở bảng "Thêm" hay chạm ô ngày trên widget khi trang đang mở: nhảy tới ngày mới
+  useEffect(() => {
+    if (start !== now) goTo(start);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start]);
 
   return (
     <div>
@@ -70,7 +75,6 @@ export function CalendarPage() {
       </div>
 
       <DayDetail date={selected} />
-      <Converter onPick={goTo} />
     </div>
   );
 }
@@ -108,56 +112,6 @@ function DayDetail({ date }: { date: string }) {
         <dt className="text-muted">Giờ tốt</dt>
         <dd>{d.gioHoangDao.map((g) => `${g.chi} (${g.hours}h)`).join(", ")}</dd>
       </dl>
-    </section>
-  );
-}
-
-/** Đổi ngày âm → dương (CAL-UC01/BR-5) */
-function Converter({ onPick }: { onPick(date: string): void }) {
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState(() => String(parseYmd(today())[0]));
-  const [leap, setLeap] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-
-  const convert = () => {
-    const [d, m, y] = [Number(day), Number(month), Number(year)];
-    const s = Number.isInteger(d) && Number.isInteger(m) && y >= 1900 && y <= 2100 ? lunarToSolar(d, m, y, leap) : null;
-    if (!s) {
-      setResult("Ngày âm không tồn tại");
-      return;
-    }
-    const date = ymd(s.year, s.month, s.day);
-    setResult(`${pad(d)}/${pad(m)}${leap ? " nhuận" : ""} âm lịch năm ${y} là ${longDate(date)}`);
-    onPick(date);
-  };
-
-  return (
-    <section aria-label="Đổi ngày âm sang dương" className="mt-4 rounded-2xl border border-line bg-surface p-4">
-      <h2 className="mb-2 font-semibold">Đổi ngày âm → dương</h2>
-      <div className="grid grid-cols-3 gap-2">
-        <Field label="Ngày">
-          <input className={inputClass} inputMode="numeric" value={day} onChange={(e) => setDay(e.target.value)} />
-        </Field>
-        <Field label="Tháng">
-          <input className={inputClass} inputMode="numeric" value={month} onChange={(e) => setMonth(e.target.value)} />
-        </Field>
-        <Field label="Năm">
-          <input className={inputClass} inputMode="numeric" value={year} onChange={(e) => setYear(e.target.value)} />
-        </Field>
-      </div>
-      <label className="mb-3 flex min-h-11 items-center gap-2 text-sm">
-        <input type="checkbox" checked={leap} onChange={(e) => setLeap(e.target.checked)} className="h-5 w-5 accent-gold" />
-        Tháng nhuận
-      </label>
-      <button type="button" onClick={convert} className="min-h-12 w-full rounded-xl bg-gold font-medium text-bg active:bg-gold-deep">
-        Đổi
-      </button>
-      {result && (
-        <p role="status" className="mt-3 text-sm">
-          {result}
-        </p>
-      )}
     </section>
   );
 }

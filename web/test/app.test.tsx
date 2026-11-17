@@ -43,25 +43,39 @@ describe("tab Lịch (CAL-UC01)", () => {
     expect(within(detail).getByText("Thứ Sáu, 20/11/2026")).toBeTruthy();
   });
 
-  it("chuyển tháng; đổi ngày âm → dương rồi nhảy tới ngày đó", async () => {
+  it("chuyển tháng; nút Thêm: đổi âm → dương, dương → âm, Xem trên lịch", async () => {
     mockApi(baseHandlers());
     const user = userEvent.setup();
     renderAt("/");
     await user.click(await screen.findByRole("button", { name: "Tháng sau" }));
     expect(screen.getByRole("grid", { name: "Lịch tháng 12 năm 2026" })).toBeTruthy();
 
-    const conv = screen.getByRole("region", { name: "Đổi ngày âm sang dương" });
+    await user.click(screen.getByRole("button", { name: "Thêm" }));
+    const sheet = screen.getByRole("dialog", { name: "Thêm" });
+    const conv = within(sheet).getByRole("region", { name: "Đổi ngày âm sang dương" });
     await user.type(within(conv).getByLabelText("Ngày"), "1");
     await user.type(within(conv).getByLabelText("Tháng"), "1");
     await user.clear(within(conv).getByLabelText("Năm"));
     await user.type(within(conv).getByLabelText("Năm"), "2027");
-    await user.click(within(conv).getByRole("button", { name: "Đổi" }));
-    expect(within(conv).getByRole("status").textContent).toBe("01/01 âm lịch năm 2027 là Thứ Bảy, 06/02/2027");
-    expect(screen.getByRole("grid", { name: "Lịch tháng 2 năm 2027" })).toBeTruthy();
-
+    await user.click(within(conv).getByRole("button", { name: "Đổi sang dương" }));
+    expect(within(conv).getByText("01/01 âm lịch năm 2027 là Thứ Bảy, 06/02/2027")).toBeTruthy();
     await user.click(within(conv).getByLabelText("Tháng nhuận"));
-    await user.click(within(conv).getByRole("button", { name: "Đổi" }));
-    expect(within(conv).getByRole("status").textContent).toBe("Ngày âm không tồn tại");
+    await user.click(within(conv).getByRole("button", { name: "Đổi sang dương" }));
+    expect(within(conv).getByText("Ngày âm không tồn tại")).toBeTruthy();
+
+    const back = within(sheet).getByRole("region", { name: "Đổi ngày dương sang âm" });
+    const input = within(back).getByLabelText(/^Ngày dương/) as HTMLInputElement;
+    await user.clear(input);
+    await user.type(input, "2025-10-06");
+    await user.click(within(back).getByRole("button", { name: "Đổi sang âm" }));
+    expect(within(back).getByText("Thứ Hai, 06/10/2025 là ngày 15 tháng 8 năm Ất Tỵ (âm lịch)")).toBeTruthy();
+    // Ngoài app Android thì mời tải app
+    expect(within(sheet).getByRole("link", { name: "Tải mylunarcalendar.apk" })).toBeTruthy();
+
+    await user.click(within(back).getByRole("button", { name: "Xem trên lịch" }));
+    expect(screen.queryByRole("dialog", { name: "Thêm" })).toBeNull();
+    expect(await screen.findByRole("grid", { name: "Lịch tháng 10 năm 2025" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Chi tiết ngày" })).getByText("Tết Trung thu")).toBeTruthy();
   });
 });
 
@@ -197,6 +211,8 @@ describe("chưa bật AI (HORO-UC01/BR-8)", () => {
     expect(screen.queryByRole("navigation", { name: "Điều hướng chính" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Hỏi AI" })).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
+    // Nút Thêm (đổi ngày) vẫn có, đứng chỗ nút Hỏi AI
+    expect(screen.getByRole("button", { name: "Thêm" })).toBeTruthy();
   });
 
   it("không gọi được server: lịch vẫn chạy, ẩn phần AI, không báo lỗi", async () => {

@@ -42,6 +42,7 @@ class MainActivity : Activity() {
         setContentView(root)
         WebScreen.setup(this, web, base) { loading -> progress.visibility = if (loading) View.VISIBLE else View.GONE }
         if (savedInstanceState != null) web.restoreState(savedInstanceState) else web.loadUrl(urlFor(base, intent))
+        Updater.checkDaily(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -75,6 +76,7 @@ class MainActivity : Activity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, MENU_PIN, 0, getString(R.string.pin_widget))
         menu.add(0, MENU_SETUP, 1, getString(R.string.change_url))
+        menu.add(0, MENU_UPDATE, 2, "Kiểm tra cập nhật (bản 1.0.${Updater.currentVersion(this)})")
         return true
     }
 
@@ -82,6 +84,7 @@ class MainActivity : Activity() {
         when (item.itemId) {
             MENU_PIN -> pinWidget()
             MENU_SETUP -> startActivity(Intent(this, SetupActivity::class.java))
+            MENU_UPDATE -> Updater.check(this, manual = true)
             else -> return super.onOptionsItemSelected(item)
         }
         return true
@@ -104,6 +107,7 @@ class MainActivity : Activity() {
 
         private const val MENU_PIN = 1
         private const val MENU_SETUP = 2
+        private const val MENU_UPDATE = 3
 
         private fun urlFor(base: String, intent: Intent): String {
             if (!intent.hasExtra(EXTRA_DAY)) return "$base/"

@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { MoreSheet } from "./MoreSheet";
 import { BottomNav } from "./BottomNav";
 import { ChatSheet } from "./ChatSheet";
 import { useChat } from "../chat-context";
@@ -12,6 +14,9 @@ export function AppShell() {
   const { openChat } = useChat();
   // Chưa bật AI: chỉ có tab Lịch, không cần thanh tab và nút Hỏi AI
   const ai = useAiEnabled();
+  const [more, setMore] = useState(false);
+  // Đáy của cột nút nổi: trên thanh tab khi có tab, sát đáy khi chỉ còn Lịch
+  const base = ai ? "var(--spacing-tabbar)+env(safe-area-inset-bottom)" : "env(safe-area-inset-bottom)";
 
   return (
     <div className="mx-auto min-h-dvh max-w-md bg-bg">
@@ -25,6 +30,20 @@ export function AppShell() {
         <Outlet />
       </main>
 
+      {/* Nút "Thêm" (đổi ngày âm ↔ dương, tải app), 48px, đứng trên nút Hỏi AI; không có AI thì đứng chỗ của nó */}
+      <button
+        type="button"
+        aria-label="Thêm"
+        onClick={() => setMore(true)}
+        style={{ bottom: `calc(${base} + ${ai ? "4.75rem" : "1rem"})` }}
+        className="fixed right-[max(1rem,calc(50vw-14rem+1rem))] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface-2 text-ink shadow-lg active:bg-surface"
+      >
+        <svg aria-hidden viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M7 8h10M7 12h10M7 16h6" />
+          <path d="M17 15l2 2-2 2" />
+        </svg>
+      </button>
+      {more && <MoreSheet onClose={() => setMore(false)} />}
       {/* Nút hỏi AI (HORO-UC02), 48px, ngay trên thanh tab */}
       {ai && (
       <button

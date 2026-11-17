@@ -27,18 +27,29 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      # Có khoá ký trong Secrets thì ký bằng khoá cố định (cài đè bản cũ được);
-      # chưa có thì ký bằng khoá debug của máy build (cập nhật phải gỡ app cũ trước)
-      - name: Chuẩn bị khoá ký
+      # Khoá ký cố định để bản mới cài đè được bản cũ (nút "Cập nhật" trong app). Chỉ cần một Secret
+      # ANDROID_KEYSTORE_PASSWORD (mật khẩu tự đặt). Lần build đầu có mật khẩu thì tự tạo khoá, khoá
+      # bằng mật khẩu đó rồi lưu vào repo (android/release-key.p12); các lần sau dùng lại.
+      # Chưa có mật khẩu thì ký bằng khoá debug: cài được nhưng mỗi bản mới phải gỡ app cũ.
+      - name: Khoá ký cố định
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
-            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
-          else
-            echo "::warning::Chưa có ANDROID_KEYSTORE_BASE64, APK ký bằng khoá debug"
+          if [ -z "$KS_PASS" ]; then
+            echo "::warning::Chưa đặt Secret ANDROID_KEYSTORE_PASSWORD, APK ký bằng khoá debug"
+            exit 0
           fi
+          KS=android/release-key.p12
+          if [ ! -f "$KS" ]; then
+            keytool -genkeypair -keystore "$KS" -storetype PKCS12 -storepass "$KS_PASS" -keypass "$KS_PASS" \
+              -alias app -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=MyLunarCalendar"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$KS"
+            git commit -m "chore: khoá ký APK cố định (tạo tự động, khoá bằng mật khẩu trong Secrets) [skip ci]"
+            git push
+          fi
+          echo "ANDROID_KEYSTORE_FILE=$GITHUB_WORKSPACE/$KS" >> "$GITHUB_ENV"
 
       # Test lịch âm sai thì dừng, không phát hành
       - name: Test và build APK
@@ -46,8 +57,8 @@ jobs:
         env:
           VERSION_CODE: ${{ github.run_number }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: app
         run: |
           gradle --no-daemon test assembleRelease
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/mylunarcalendar.apk"
