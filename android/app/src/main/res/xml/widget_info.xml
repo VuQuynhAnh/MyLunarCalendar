@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget 4x4. Lịch tính hoàn toàn trên máy; sang ngày mới được vẽ lại nhờ báo thức lúc nửa đêm,
+     3 giờ tự cập nhật một lần chỉ để phòng khi báo thức bị lỡ -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="250dp"
+    android:minResizeWidth="220dp"
+    android:minResizeHeight="220dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="4"
+    android:updatePeriodMillis="10800000"
+    android:initialLayout="@layout/widget"
+    android:previewLayout="@layout/widget"
+    android:description="@string/widget_description"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

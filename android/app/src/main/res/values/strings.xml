@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lịch âm</string>
+    <string name="widget_description">Lịch tháng có ngày âm, ngày lễ, tiết khí và giờ tốt hôm nay</string>
+    <string name="pin_widget">Thêm widget ra màn hình chính</string>
+    <string name="pin_manual">Giữ ngón tay ở chỗ trống trên màn hình chính → Tiện ích → Lịch âm, kéo ra màn hình.</string>
+    <string name="change_url">Đổi địa chỉ web</string>
+    <string name="setup_title">Địa chỉ web Lịch âm</string>
+    <string name="setup_guide">Dán địa chỉ web MyLunarCalendar (vd địa chỉ Render). Chỉ cần nhập một lần. Widget lịch không cần bước này.</string>
+    <string name="setup_hint">vd mylunarcalendar.onrender.com</string>
+    <string name="setup_save">Lưu và mở</string>
+    <string name="setup_invalid">Địa chỉ không đúng, kiểm tra lại</string>
+</resources>

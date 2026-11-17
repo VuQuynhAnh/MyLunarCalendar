@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+ * Bảng màu tối: nền đen than, điểm nhấn vàng kim, đỏ cho ngày lễ. Component chỉ dùng các token
+ * này (bg-bg, bg-surface, text-ink, text-muted, text-gold…), không dùng màu cố định (R-UI-05).
+ */
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --color-bg: #0f0f10;
+  --color-surface: #18181b;
+  --color-surface-2: #232327;
+  --color-line: #2c2c31;
+  --color-ink: #f4f1ea;
+  --color-muted: #a8a29e;
+  --color-gold: #d4af37;
+  --color-gold-deep: #b8942a;
+  --color-gold-soft: #f0d78c;
+  /* Tốt (ngày hoàng đạo, điểm cao) xanh; xấu (hắc đạo) và ngày nghỉ lễ đỏ, sắc độ sáng cho nền tối */
+  --color-good: #34d399;
+  --color-bad: #f87171;
+  /* Chiều cao thanh tab dưới, dùng để chừa chỗ cho nội dung và nút nổi */
+  --spacing-tabbar: 4rem;
+}
+
+:root {
+  /* Ô chọn ngày giờ, thanh cuộn, bàn phím của hệ thống cũng theo nền tối */
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  /* dvh thay cho vh: trên điện thoại vh tính cả thanh địa chỉ nên bị tràn */
+  min-height: 100dvh;
+}
+
+body {
+  @apply bg-bg font-sans text-ink antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Số dùng chữ số đều nhau cho lưới lịch thẳng cột */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chừa vùng an toàn của iPhone (tai thỏ, thanh home) — R-UI-03 */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}

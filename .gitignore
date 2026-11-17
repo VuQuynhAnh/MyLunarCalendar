@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+*.sqlite
+*.sqlite-journal
+*.db
+*.log
+.DS_Store
+server/data/
+.vite/
+
+# Android (app widget)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.keystore
+*.jks
