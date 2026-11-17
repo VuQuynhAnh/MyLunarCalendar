@@ -4,6 +4,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -61,11 +62,34 @@ class MainActivity : Activity() {
         Updater.checkDaily(this)
     }
 
+    /** Lần quay lại này mở từ ô ngày trên widget: đã chuyển tới ngày đó, đừng về tab Lịch hôm nay */
+    private var openedFromWidget = false
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // Đang mở app mà chạm thêm một ngày trên widget: chuyển tới ngày đó
         val base = SetupActivity.webUrl(this) ?: return
-        if (intent.hasExtra(EXTRA_DAY)) web.loadUrl(urlFor(base, intent))
+        if (intent.hasExtra(EXTRA_DAY)) {
+            openedFromWidget = true
+            web.loadUrl(urlFor(base, intent))
+        }
+    }
+
+    /**
+     * Quay lại app (bấm icon khi app đang chạy nền): Android đưa lại màn hình cũ, có thể đang ở tab
+     * Cài đặt. Mở app phải luôn vào tab Lịch (user chốt 2026-11-18), nên về trang chủ. Android gọi
+     * onNewIntent trước onRestart, nên mở từ widget thì giữ ngày vừa chọn.
+     */
+    override fun onRestart() {
+        super.onRestart()
+        if (openedFromWidget) {
+            openedFromWidget = false
+            return
+        }
+        val base = SetupActivity.webUrl(this) ?: return
+        if (!::web.isInitialized) return
+        val path = web.url?.let { Uri.parse(it).path } ?: ""
+        if (path != "/" && path != "") web.loadUrl("$base/")
     }
 
     /**
