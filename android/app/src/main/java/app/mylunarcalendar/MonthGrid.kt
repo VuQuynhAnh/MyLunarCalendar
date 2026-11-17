@@ -16,6 +16,7 @@ data class DayCell(
 
     /** Chủ nhật: cột cuối, vì tuần bắt đầu từ thứ Hai */
     val isSunday: Boolean get() = MonthGrid.weekdayIndex(jd) == 6
+    val isSaturday: Boolean get() = MonthGrid.weekdayIndex(jd) == 5
 }
 
 /** Dữ liệu lịch tháng dùng chung cho widget và màn hình app */

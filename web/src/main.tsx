@@ -19,3 +19,13 @@ createRoot(document.getElementById("root")!).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// Giữ sẵn giao diện để mở lại hiện lịch ngay (public/sw.js). Chỉ bật ở bản build, không bật khi dev
+// để sửa code thấy ngay
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // Trình duyệt chặn (chế độ riêng tư…): web vẫn chạy bình thường, chỉ không mở nhanh
+    });
+  });
+}

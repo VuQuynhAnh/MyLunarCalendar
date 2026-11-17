@@ -29,6 +29,7 @@ export interface Cell {
   lunarFirst: boolean;
   holiday: { name: string; off: boolean } | null;
   sunday: boolean;
+  saturday: boolean;
 }
 
 /** 6 tuần (42 ô) của một tháng dương, tuần bắt đầu thứ Hai như lịch treo tường Việt Nam */
@@ -51,6 +52,7 @@ export function monthGrid(year: number, month: number): Cell[] {
       lunarFirst: lunar.day === 1 || lunar.day === 15,
       holiday: holiday ? { name: holiday.name, off: holiday.off } : null,
       sunday: (jd + 1) % 7 === 0,
+      saturday: (jd + 1) % 7 === 6,
     };
   });
 }

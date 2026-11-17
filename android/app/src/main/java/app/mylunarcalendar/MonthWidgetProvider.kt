@@ -77,17 +77,22 @@ class MonthWidgetProvider : AppWidgetProvider() {
         private const val KEY_DAY = "day_"
 
         /** Bảng màu widget; sáng hay tối theo lựa chọn trong app (AppTheme) */
-        private class Palette(val text: Int, val muted: Int, val gold: Int, val red: Int, val sunday: Int, val bg: Int)
+        // Cùng bộ màu với web (CAL-UC01/BR-2): hôm nay nền vàng đặc, nghỉ lễ đỏ, lễ khác vàng,
+        // Chủ nhật đỏ, thứ Bảy xanh, mùng 1 và rằm ngày âm đỏ đậm
+        private class Palette(val text: Int, val muted: Int, val gold: Int, val red: Int, val sunday: Int, val sat: Int, val bg: Int)
+
+        /** Chữ trên ô hôm nay (nền vàng đặc): tối ở cả hai giao diện cho đủ tương phản */
+        private const val ON_TODAY = 0xFF1F1F23.toInt()
 
         private val DARK = Palette(
             text = 0xFFF4F1EA.toInt(), muted = 0xFFA8A29E.toInt(), gold = 0xFFD4AF37.toInt(),
             // Chủ nhật: đỏ nhạt hơn ngày nghỉ lễ
-            red = 0xFFF87171.toInt(), sunday = 0xFFFCA5A5.toInt(), bg = R.drawable.widget_bg,
+            red = 0xFFF87171.toInt(), sunday = 0xFFF87171.toInt(), sat = 0xFF60A5FA.toInt(), bg = R.drawable.widget_bg,
         )
         // Nền sáng: chữ đậm hơn để đủ tương phản
         private val LIGHT = Palette(
             text = 0xFF1F1F23.toInt(), muted = 0xFF6B6B70.toInt(), gold = 0xFF9A7300.toInt(),
-            red = 0xFFDC2626.toInt(), sunday = 0xFFE05252.toInt(), bg = R.drawable.widget_bg_light,
+            red = 0xFFC62828.toInt(), sunday = 0xFFC62828.toInt(), sat = 0xFF1D4ED8.toInt(), bg = R.drawable.widget_bg_light,
         )
         private val WEEKDAYS = intArrayOf(R.id.w0, R.id.w1, R.id.w2, R.id.w3, R.id.w4, R.id.w5, R.id.w6)
         /** Ngày của tháng trước/sau: cùng màu nhưng mờ */
@@ -117,7 +122,7 @@ class MonthWidgetProvider : AppWidgetProvider() {
             val c = if (AppTheme.isDark(ctx)) DARK else LIGHT
             views.setInt(android.R.id.background, "setBackgroundResource", c.bg)
             for (id2 in intArrayOf(R.id.prev, R.id.title, R.id.next)) views.setTextColor(id2, c.gold)
-            WEEKDAYS.forEachIndexed { i, wid -> views.setTextColor(wid, if (i == 6) c.red else c.muted) }
+            WEEKDAYS.forEachIndexed { i, wid -> views.setTextColor(wid, if (i == 6) c.red else if (i == 5) c.sat else c.muted) }
             views.setTextColor(R.id.footer1, c.text)
             views.setTextColor(R.id.footer2, c.muted)
             val todayJd = MonthGrid.todayJd()
@@ -136,15 +141,23 @@ class MonthWidgetProvider : AppWidgetProvider() {
                     cell.isOff -> c.red
                     cell.holidays.isNotEmpty() -> c.gold
                     cell.isSunday -> c.sunday
+                    cell.isSaturday -> c.sat
                     else -> c.text
                 }
-                // Mùng 1 tô vàng để dễ thấy chỗ sang tháng âm mới
-                val lunarColor = if (cell.lunar.day == 1) c.gold else c.muted
+                // Mùng 1 và rằm đỏ đậm để thấy ngay ngày cúng
+                val lunarColor = if (cell.lunar.day == 1 || cell.lunar.day == 15) c.red else c.muted
+                val isToday = cell.jd == todayJd
                 views.setTextViewText(WidgetCells.DAY[i], cell.solar.day.toString())
-                views.setTextColor(WidgetCells.DAY[i], if (cell.inMonth) dayColor else dim(dayColor))
+                views.setTextColor(WidgetCells.DAY[i], if (isToday) ON_TODAY else if (cell.inMonth) dayColor else dim(dayColor))
                 views.setTextViewText(WidgetCells.LUNAR[i], MonthGrid.lunarLabel(cell.lunar))
-                views.setTextColor(WidgetCells.LUNAR[i], if (cell.inMonth) lunarColor else dim(lunarColor))
-                views.setInt(WidgetCells.CELL[i], "setBackgroundResource", if (cell.jd == todayJd) R.drawable.cell_today else 0)
+                views.setTextColor(WidgetCells.LUNAR[i], if (isToday) ON_TODAY else if (cell.inMonth) lunarColor else dim(lunarColor))
+                // Hôm nay nền vàng đặc; ngày nghỉ lễ trong tháng nền đỏ nhạt
+                val cellBg = when {
+                    isToday -> R.drawable.cell_today
+                    cell.isOff && cell.inMonth -> R.drawable.cell_off
+                    else -> 0
+                }
+                views.setInt(WidgetCells.CELL[i], "setBackgroundResource", cellBg)
                 views.setOnClickPendingIntent(WidgetCells.CELL[i], dayIntent(ctx, id, i, cell.solar))
             }
 

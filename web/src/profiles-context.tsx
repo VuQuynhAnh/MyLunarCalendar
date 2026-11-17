@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
-import { MAX_PROFILES, type ProfileInput } from "@mylunar/shared";
+import type { ProfileInput } from "@mylunar/shared";
 import type { Profile } from "./api";
 import { KEYS, load, save } from "./lib/storage";
 import { forgetReadings } from "./lib/readings";
@@ -16,9 +16,12 @@ interface ProfilesState {
 
 const ProfilesContext = createContext<ProfilesState | null>(null);
 
+/** Mỗi máy chỉ một hồ sơ của chính chủ máy (user chốt 2026-11-18) */
+export const MAX_LOCAL_PROFILES = 1;
+
 /**
- * Hồ sơ lưu trên máy (HORO-UC01/BR-1), dùng chung cho tab Tử vi, Hồ sơ và chat. Không có server
- * lưu hồ sơ (user chốt 2026-11-17), nên mỗi máy/trình duyệt một danh sách riêng.
+ * Hồ sơ lưu trên máy (HORO-UC01/BR-1), dùng chung cho Tử vi, Tiện ích và chat. Không có server
+ * lưu hồ sơ (user chốt 2026-11-17).
  */
 export function ProfilesProvider({ children }: { children: ReactNode }) {
   const [profiles, setProfiles] = useState<Profile[]>(() => load<Profile[]>(KEYS.profiles, []));
@@ -31,7 +34,7 @@ export function ProfilesProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback(
     (p: ProfileInput) => {
-      if (profiles.length >= MAX_PROFILES) throw new Error(`Tối đa ${MAX_PROFILES} hồ sơ`);
+      if (profiles.length >= MAX_LOCAL_PROFILES) throw new Error("Mỗi máy chỉ lưu một hồ sơ");
       const created = { ...p, id: Math.max(0, ...profiles.map((x) => x.id)) + 1 };
       commit([...profiles, created]);
       return created;

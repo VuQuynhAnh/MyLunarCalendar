@@ -9,7 +9,6 @@ import { AppShell } from "./components/AppShell";
 import { PasswordPage } from "./pages/PasswordPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { HoroscopePage } from "./pages/HoroscopePage";
-import { ProfilesPage } from "./pages/ProfilesPage";
 import { ProfileFormPage } from "./pages/ProfileFormPage";
 import { UtilitiesPage } from "./pages/UtilitiesPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -86,7 +85,8 @@ export function AppRoutes() {
           <Route path="cai-dat" element={<SettingsPage />} />
           <Route element={<AiOnly />}>
             <Route path="tu-vi" element={<HoroscopePage />} />
-            <Route path="ho-so" element={<ProfilesPage />} />
+            {/* Mỗi máy một hồ sơ, hiện ngay ở tab Tiện ích; link cũ chuyển về đó */}
+            <Route path="ho-so" element={<Navigate to="/tien-ich" replace />} />
           </Route>
         </Route>
         <Route element={<AiOnly />}>

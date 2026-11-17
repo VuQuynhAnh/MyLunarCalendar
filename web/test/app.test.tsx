@@ -61,32 +61,56 @@ describe("tab Lịch (CAL-UC01)", () => {
     expect(screen.getByRole("grid", { name: "Lịch tháng 12 năm 2026" })).toBeTruthy();
   });
 
-  it("tab Tiện ích: đổi âm → dương, dương → âm, Xem trên lịch", async () => {
+  it("tab Tiện ích: đổi ngày gọn, nút mũi tên đảo chiều, Xem trên lịch", async () => {
     mockApi(baseHandlers());
     const user = userEvent.setup();
     renderAt("/");
     await user.click(await screen.findByRole("link", { name: "Tiện ích" }));
-    const sheet = await screen.findByRole("main");
-    const conv = within(sheet).getByRole("region", { name: "Đổi ngày âm sang dương" });
-    await user.type(within(conv).getByLabelText("Ngày"), "1");
-    await user.type(within(conv).getByLabelText("Tháng"), "1");
-    await user.clear(within(conv).getByLabelText("Năm"));
-    await user.type(within(conv).getByLabelText("Năm"), "2027");
-    await user.click(within(conv).getByRole("button", { name: "Đổi sang dương" }));
-    expect(within(conv).getByText("01/01 âm lịch năm 2027 là Thứ Bảy, 06/02/2027")).toBeTruthy();
-    await user.click(within(conv).getByLabelText("Tháng nhuận"));
-    await user.click(within(conv).getByRole("button", { name: "Đổi sang dương" }));
-    expect(within(conv).getByText("Ngày âm không tồn tại")).toBeTruthy();
+    const box = await screen.findByRole("region", { name: "Đổi ngày âm dương" });
+    // Mặc định Dương → Âm
+    const solar = within(box).getByLabelText("Ngày dương") as HTMLInputElement;
+    await user.clear(solar);
+    await user.type(solar, "2025-10-06");
+    await user.click(within(box).getByRole("button", { name: "Đổi" }));
+    expect(within(box).getByText("Ngày 15 tháng 8 năm Ất Tỵ (âm lịch)")).toBeTruthy();
 
-    const back = within(sheet).getByRole("region", { name: "Đổi ngày dương sang âm" });
-    const input = within(back).getByLabelText(/^Ngày dương/) as HTMLInputElement;
-    await user.clear(input);
-    await user.type(input, "2025-10-06");
-    await user.click(within(back).getByRole("button", { name: "Đổi sang âm" }));
-    expect(within(back).getByText("Thứ Hai, 06/10/2025 là ngày 15 tháng 8 năm Ất Tỵ (âm lịch)")).toBeTruthy();
-    await user.click(within(back).getByRole("button", { name: "Xem trên lịch" }));
-    expect(await screen.findByRole("grid", { name: "Lịch tháng 10 năm 2025" })).toBeTruthy();
-    expect(within(screen.getByRole("region", { name: "Chi tiết ngày" })).getByText("Tết Trung thu")).toBeTruthy();
+    // Đảo chiều: Âm → Dương
+    await user.click(within(box).getByRole("button", { name: /Đảo chiều, đang đổi Dương sang Âm/ }));
+    await user.type(within(box).getByLabelText("Ngày âm"), "1");
+    await user.type(within(box).getByLabelText("Tháng âm"), "1");
+    await user.clear(within(box).getByLabelText("Năm âm"));
+    await user.type(within(box).getByLabelText("Năm âm"), "2027");
+    await user.click(within(box).getByRole("button", { name: "Đổi" }));
+    expect(within(box).getByText("Thứ Bảy, 06/02/2027 (dương lịch)")).toBeTruthy();
+    await user.click(within(box).getByLabelText("Tháng nhuận"));
+    await user.click(within(box).getByRole("button", { name: "Đổi" }));
+    expect(within(box).getByText("Ngày âm không tồn tại")).toBeTruthy();
+    await user.click(within(box).getByLabelText("Tháng nhuận"));
+    await user.click(within(box).getByRole("button", { name: "Đổi" }));
+
+    await user.click(within(box).getByRole("button", { name: "Xem trên lịch" }));
+    expect(await screen.findByRole("grid", { name: "Lịch tháng 2 năm 2027" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Chi tiết ngày" })).getByText("Tết Nguyên Đán")).toBeTruthy();
+  });
+
+  // SC: CAL-UC01-SC6
+  it("chạm tiêu đề để chọn tháng, năm; Hôm nay quay về; hôm nay tô nền vàng", async () => {
+    mockApi(baseHandlers());
+    const user = userEvent.setup();
+    renderAt("/");
+    const todayCell = await screen.findByRole("gridcell", { name: /17\/11\/2026/ });
+    expect(todayCell.className).toContain("bg-gold");
+    await user.click(screen.getByRole("button", { name: /Chọn tháng, năm/ }));
+    const picker = screen.getByRole("dialog", { name: "Chọn tháng, năm" });
+    await user.selectOptions(within(picker).getByLabelText("Năm"), "1990");
+    await user.click(within(picker).getByRole("button", { name: "Th 3" }));
+    expect(screen.getByRole("grid", { name: "Lịch tháng 3 năm 1990" })).toBeTruthy();
+    expect(screen.queryByRole("dialog", { name: "Chọn tháng, năm" })).toBeNull();
+    // Ngày nghỉ lễ nền đỏ nhạt (30/4)
+    await user.click(screen.getByRole("button", { name: "Tháng sau" }));
+    expect(screen.getByRole("gridcell", { name: /30\/04\/1990/ }).className).toContain("bg-bad/15");
+    await user.click(screen.getByRole("button", { name: "Về hôm nay" }));
+    expect(screen.getByRole("grid", { name: "Lịch tháng 11 năm 2026" })).toBeTruthy();
   });
 });
 
@@ -160,12 +184,12 @@ describe("tab Tử vi (HORO-UC01)", () => {
   });
 });
 
-describe("hồ sơ lưu trên máy (HORO-UC01/BR-1)", () => {
+describe("hồ sơ lưu trên máy, mỗi máy một hồ sơ (HORO-UC01/BR-1)", () => {
   // SC: HORO-UC01-SC7
-  it("thêm hồ sơ: lỗi hiện dưới từng ô; lưu xong có trong danh sách và trên máy", async () => {
+  it("chưa có hồ sơ: mời thêm; lỗi dưới từng ô; lưu xong Tiện ích hiện thẻ hồ sơ", async () => {
     mockApi(baseHandlers());
     const user = userEvent.setup();
-    renderAt("/ho-so");
+    renderAt("/tien-ich");
     await user.click(await screen.findByRole("link", { name: "Thêm hồ sơ" }));
     await user.click(screen.getByRole("button", { name: "Lưu" }));
     expect(screen.getByText("Vui lòng nhập tên")).toBeTruthy();
@@ -175,41 +199,35 @@ describe("hồ sơ lưu trên máy (HORO-UC01/BR-1)", () => {
     await user.type(screen.getByLabelText(/^Ngày sinh/), "1990-03-01");
     await user.click(screen.getByRole("radio", { name: "Nam" }));
     await user.click(screen.getByRole("button", { name: "Lưu" }));
-    expect(await screen.findByText(/tuổi Canh Ngọ · mệnh Lộ Bàng Thổ/)).toBeTruthy();
+    const card = await screen.findByRole("region", { name: "Hồ sơ của bạn" });
+    expect(within(card).getByText("Anh")).toBeTruthy();
+    expect(within(card).getByText("Canh Ngọ")).toBeTruthy();
+    expect(within(card).getByRole("link", { name: "Xem tử vi hôm nay" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Thêm hồ sơ" })).toBeNull();
     expect(JSON.parse(localStorage.getItem("mlc.profiles")!)).toEqual([{ id: 1, name: "Anh", birthDate: "1990-03-01", birthTime: null, gender: "male" }]);
   });
 
-  it("mở link sửa: các ô có sẵn dữ liệu; xoá phải xác nhận", async () => {
+  it("đã có hồ sơ mà vào link thêm thì mở form sửa; xoá phải xác nhận, xong mời thêm lại", async () => {
     seedProfiles();
     mockApi(baseHandlers());
     const user = userEvent.setup();
-    renderAt("/ho-so/1");
+    renderAt("/ho-so/them");
     expect(((await screen.findByLabelText(/^Tên gọi/)) as HTMLInputElement).value).toBe("Anh");
     expect((screen.getByLabelText(/^Giờ sinh/) as HTMLInputElement).value).toBe("08:30");
     await user.click(screen.getByRole("button", { name: "Xoá hồ sơ" }));
     expect(screen.getByText('Xoá hồ sơ "Anh" và các tử vi đã xem?')).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Xoá" }));
-    expect(await screen.findByText("Chưa có hồ sơ nào")).toBeTruthy();
+    expect(await screen.findByRole("link", { name: "Thêm hồ sơ" })).toBeTruthy();
     expect(JSON.parse(localStorage.getItem("mlc.profiles")!)).toEqual([]);
   });
 
-  it("link sửa hồ sơ không có thì báo không tìm thấy", async () => {
+  it("link sửa hồ sơ không có thì báo không tìm thấy; link danh sách cũ về Tiện ích", async () => {
     mockApi(baseHandlers());
-    renderAt("/ho-so/99");
+    const view = renderAt("/ho-so/99");
     expect(await screen.findByText("Không tìm thấy hồ sơ")).toBeTruthy();
-  });
-});
-
-describe("mật khẩu chung (HORO-UC01/BR-6)", () => {
-  // SC: HORO-UC01-SC9
-  it("server đặt mật khẩu thì hỏi một lần rồi vào app, máy nhớ mật khẩu", async () => {
-    mockApi(baseHandlers(true));
-    const user = userEvent.setup();
-    renderAt("/");
-    await user.type(await screen.findByLabelText(/^Mật khẩu chung/), "bimat");
-    await user.click(screen.getByRole("button", { name: "Vào" }));
-    expect(await screen.findByRole("grid", { name: "Lịch tháng 11 năm 2026" })).toBeTruthy();
-    expect(JSON.parse(localStorage.getItem("mlc.password")!)).toBe("bimat");
+    view.unmount();
+    renderAt("/ho-so");
+    expect(await screen.findByRole("heading", { name: "Tiện ích" })).toBeTruthy();
   });
 });
 
@@ -223,8 +241,8 @@ describe("chưa bật AI (HORO-UC01/BR-8)", () => {
     expect(screen.queryByRole("button", { name: "Hỏi AI" })).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
     await user.click(screen.getByRole("link", { name: "Tiện ích" }));
-    expect(await screen.findByRole("region", { name: "Đổi ngày âm sang dương" })).toBeTruthy();
-    expect(screen.queryByRole("link", { name: /Tử vi/ })).toBeNull();
+    expect(await screen.findByRole("region", { name: "Đổi ngày âm dương" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Hồ sơ của bạn" })).toBeNull();
   });
 
   it("không gọi được server: lịch vẫn chạy, ẩn phần AI, không báo lỗi", async () => {

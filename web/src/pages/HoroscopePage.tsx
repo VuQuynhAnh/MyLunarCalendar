@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { api, type Horoscope, type Profile, type Score } from "../api";
 import { useProfiles } from "../profiles-context";
 import { useChat } from "../chat-context";
@@ -28,7 +27,7 @@ function Stars({ score, label }: { score: Score; label: string }) {
  * tắt vừa xem (HORO-UC02).
  */
 export function HoroscopePage() {
-  const { profiles, selectedId, select } = useProfiles();
+  const { profiles, selectedId } = useProfiles();
   const { openChat } = useChat();
   const now = today();
   const [date, setDate] = useState(now);
@@ -85,23 +84,6 @@ export function HoroscopePage() {
   return (
     <div>
       <h1 className="mb-3 text-lg font-semibold">Tử vi</h1>
-      {profiles.length > 1 && (
-        <div role="radiogroup" aria-label="Xem cho" className="mb-3 flex gap-2 overflow-x-auto pb-1">
-          {profiles.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              role="radio"
-              aria-checked={p.id === selectedId}
-              onClick={() => select(p.id)}
-              className={cn("min-h-11 shrink-0 rounded-full border px-4 text-sm", p.id === selectedId ? "border-gold bg-gold/15 text-gold" : "border-line text-muted")}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="mb-3 flex items-center justify-between">
         <button
           type="button"

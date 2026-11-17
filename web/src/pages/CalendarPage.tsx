@@ -6,8 +6,8 @@ import { WEEKDAYS, longDate, monthGrid, parseYmd, today } from "../lib/calendar"
 
 /**
  * Tab Lịch (CAL-UC01): lịch tháng dương có ngày âm trong từng ô, ngày lễ tô màu; chạm một ngày để
- * xem chi tiết (can chi, hoàng đạo, tiết khí, giờ hoàng đạo). Tính hoàn toàn trên trình duyệt. Đổi ngày
- * âm ↔ dương nằm ở bảng "Thêm" (nút nổi).
+ * xem chi tiết (can chi, hoàng đạo, tiết khí, giờ hoàng đạo). Tính hoàn toàn trên trình duyệt. Chạm
+ * tiêu đề để chọn tháng/năm; vuốt ngang hoặc ‹ › để sang tháng. Đổi ngày âm ↔ dương ở tab Tiện ích.
  */
 export function CalendarPage() {
   const now = today();
@@ -28,7 +28,8 @@ export function CalendarPage() {
     const [y, m] = parseYmd(date);
     setView([y, m]);
   };
-  // Đổi ngày ở bảng "Thêm" hay chạm ô ngày trên widget khi trang đang mở: nhảy tới ngày mới
+  const [picking, setPicking] = useState(false);
+  // Đổi ngày ở tab Tiện ích hay chạm ô ngày trên widget khi trang đang mở: nhảy tới ngày mới
   useEffect(() => {
     if (start !== now) goTo(start);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,13 +58,40 @@ export function CalendarPage() {
         <button type="button" aria-label="Tháng trước" onClick={() => shift(-1)} className="min-h-11 min-w-11 rounded-xl text-xl text-gold">
           ‹
         </button>
-        <button type="button" onClick={() => goTo(now)} className="min-h-11 px-2 text-lg font-semibold" title="Về hôm nay">
-          Tháng {month} · {year}
+        <button
+          type="button"
+          aria-expanded={picking}
+          aria-label={`Chọn tháng, năm (đang xem tháng ${month} năm ${year})`}
+          onClick={() => setPicking((p) => !p)}
+          className="min-h-11 px-2 text-lg font-semibold"
+        >
+          Tháng {month} · {year} <span className="text-sm text-muted">▾</span>
         </button>
         <button type="button" aria-label="Tháng sau" onClick={() => shift(1)} className="min-h-11 min-w-11 rounded-xl text-xl text-gold">
           ›
         </button>
       </div>
+      {picking && (
+        <MonthPicker
+          year={year}
+          month={month}
+          onPick={(y, m) => {
+            setView([y, m]);
+            setPicking(false);
+          }}
+          onToday={() => {
+            goTo(now);
+            setPicking(false);
+          }}
+        />
+      )}
+      {!picking && (selected !== now || year !== parseYmd(now)[0] || month !== parseYmd(now)[1]) && (
+        <div className="mb-2 text-center">
+          <button type="button" onClick={() => goTo(now)} className="min-h-11 rounded-full border border-line px-4 text-sm text-gold">
+            Về hôm nay
+          </button>
+        </div>
+      )}
 
       <div
         role="grid"
@@ -73,7 +101,7 @@ export function CalendarPage() {
         className="grid touch-pan-y grid-cols-7 gap-1 text-center"
       >
         {WEEKDAYS.map((w) => (
-          <div key={w} className={cn("py-1 text-xs text-muted", w === "CN" && "text-bad")}>
+          <div key={w} className={cn("py-1 text-xs font-medium text-muted", w === "CN" && "text-bad", w === "T7" && "text-sat")}>
             {w}
           </div>
         ))}
@@ -88,16 +116,79 @@ export function CalendarPage() {
             className={cn(
               "num flex min-h-12 flex-col items-center justify-center rounded-xl leading-tight",
               !c.inMonth && "opacity-35",
-              c.date === selected ? "bg-gold/20 ring-1 ring-gold" : c.date === now && "ring-1 ring-gold/60",
+              // Hôm nay nổi nhất (nền vàng đặc); ngày nghỉ lễ nền đỏ nhạt; ngày đang chọn có viền
+              c.date === now ? "bg-gold" : c.holiday?.off && "bg-bad/15",
+              c.date === selected && "ring-2 ring-ink",
             )}
           >
-            <span className={cn("text-base font-medium", c.holiday?.off || c.sunday ? "text-bad" : c.holiday ? "text-gold" : "text-ink")}>{c.day}</span>
-            <span className={cn("text-[11px]", c.lunarFirst ? "font-medium text-gold" : "text-muted")}>{c.lunarText}</span>
+            <span
+              className={cn(
+                "text-base font-semibold",
+                c.date === now
+                  ? "text-bg"
+                  : c.holiday?.off || c.sunday
+                    ? "text-bad"
+                    : c.holiday
+                      ? "text-gold"
+                      : c.saturday
+                        ? "text-sat"
+                        : "text-ink",
+              )}
+            >
+              {c.day}
+            </span>
+            {/* Mùng 1 và rằm: ngày âm đỏ đậm để thấy ngay ngày cúng */}
+            <span className={cn("text-[11px]", c.date === now ? "font-medium text-bg" : c.lunarFirst ? "font-semibold text-bad" : "text-muted")}>
+              {c.lunarText}
+            </span>
           </button>
         ))}
       </div>
 
       <DayDetail date={selected} />
+    </div>
+  );
+}
+
+const YEARS = Array.from({ length: 201 }, (_, i) => 1900 + i);
+
+/** Chọn nhanh tháng/năm (CAL-UC01/BR-12): năm dạng danh sách, tháng 12 ô */
+function MonthPicker({ year, month, onPick, onToday }: { year: number; month: number; onPick(y: number, m: number): void; onToday(): void }) {
+  const [y, setY] = useState(year);
+  return (
+    <div role="dialog" aria-label="Chọn tháng, năm" className="mb-3 rounded-2xl border border-line bg-surface p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <label className="flex flex-1 items-center gap-2 text-sm">
+          <span className="text-muted">Năm</span>
+          <select
+            aria-label="Năm"
+            value={y}
+            onChange={(e) => setY(Number(e.target.value))}
+            className="h-11 flex-1 rounded-xl border border-line bg-bg px-2 text-base text-ink"
+          >
+            {YEARS.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" onClick={onToday} className="min-h-11 rounded-xl border border-gold/60 px-3 text-sm font-medium text-gold">
+          Hôm nay
+        </button>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onPick(y, m)}
+            className={cn("min-h-11 rounded-xl text-sm", m === month && y === year ? "bg-gold font-semibold text-bg" : "bg-surface-2 text-ink")}
+          >
+            Th {m}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -18,6 +18,8 @@
   /* Tốt (ngày hoàng đạo, điểm cao) xanh; xấu (hắc đạo) và ngày nghỉ lễ đỏ, sắc độ sáng cho nền tối */
   --color-good: #34d399;
   --color-bad: #f87171;
+  /* Thứ Bảy trên lịch: xanh, để cuối tuần tách khỏi ngày thường */
+  --color-sat: #60a5fa;
   /* Chiều cao thanh tab dưới, dùng để chừa chỗ cho nội dung và nút nổi */
   --spacing-tabbar: 4rem;
 }
@@ -44,6 +46,7 @@
   --color-gold-soft: #6f5300;
   --color-good: #047857;
   --color-bad: #c62828;
+  --color-sat: #1d4ed8;
 }
 
 html,

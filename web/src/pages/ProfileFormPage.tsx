@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { checkProfile } from "@mylunar/shared";
 import type { Profile } from "../api";
@@ -15,6 +15,8 @@ import { today } from "../lib/calendar";
 export function ProfileFormPage() {
   const { id } = useParams();
   const { profiles } = useProfiles();
+  // Mỗi máy một hồ sơ: đã có mà vào "thêm" thì mở form sửa hồ sơ đó
+  if (!id && profiles[0]) return <Navigate to={`/ho-so/${profiles[0].id}`} replace />;
   const editing = id ? profiles.find((p) => String(p.id) === id) : undefined;
   if (id && !editing) return <p className="p-4 text-center text-muted">Không tìm thấy hồ sơ</p>;
   return <ProfileForm key={id ?? "new"} editing={editing} />;
@@ -40,7 +42,7 @@ function ProfileForm({ editing }: { editing?: Profile }) {
     try {
       if (editing) update(editing.id, checked.value);
       else add(checked.value);
-      navigate("/ho-so");
+      navigate("/tien-ich");
     } catch (err) {
       // Vượt số hồ sơ tối đa
       setMessage(err instanceof Error ? err.message : "Chưa lưu được");
@@ -50,7 +52,7 @@ function ProfileForm({ editing }: { editing?: Profile }) {
   const remove = () => {
     setConfirm(false);
     removeProfile(editing!.id);
-    navigate("/ho-so");
+    navigate("/tien-ich");
   };
 
   return (
